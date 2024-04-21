@@ -1,0 +1,10 @@
+
+.tag-content {
+    float: left;
+    font-weight: bold;
+    font-size: 18px
+}
+
+.image {
+    border-radius: 10%;
+}

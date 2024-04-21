@@ -1,0 +1,25 @@
+.editableBlock {
+    padding: 10px;
+  }
+
+.tag-style {
+    width: 180px;
+    background: transparent;
+    border: none;
+}
+
+.trash-icon {
+    color: black;
+    height: 20px;
+    border-radius: 10px;
+    padding: 1px;
+    border: 1px solid black;
+}
+
+.delete-or-tag-space {
+    float: left;
+    width: 200px;
+    margin-top: 5px;
+    text-align: center;
+    font-weight: bold;
+}

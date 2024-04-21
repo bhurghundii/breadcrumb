@@ -1,0 +1,360 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  todo-list-api
+
+  Sample SAM Template for todo-list-api
+
+# More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
+Globals:
+  Function:
+    Timeout: 30
+    Runtime: python3.9
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TABLE: !Ref Table
+        REGION: !Ref Region
+        AWSENV: !Ref AWSenv
+
+Parameters:
+  Table:
+    Type: String
+    Default: Actions
+  Region:
+    Type: String
+    Default: eu-west-1
+  AWSenv:
+    Type: String
+    Default: AWS
+  UserPoolId:
+    Type: String
+    Description: User poolID for Cognito provider
+    Default: eu-west-1_WibrkRuXF
+  AppClientId:
+    Type: String
+    Description: Client id for user pool
+
+Resources: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-resources-and-properties.html
+  GetToDynamoDBTables:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/get_two_tables_actions/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Environment:
+        Variables:
+          TABLE_NAME_1: !Ref PageTable
+          TABLE_NAME_2: !Ref BlocksTable
+      Events:
+        PutToDynamoDBTablesApi:
+          Type: HttpApi
+          Properties:
+            ApiId: !Ref HttpApi
+            Path: /get-tables/{id}/{date}
+            Method: get
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+          - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+              TableName: !Ref PageTable
+          - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+              TableName: !Ref BlocksTable
+
+  # block crud ops
+  CreateBlockFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/block-crud/create_block/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        CreateAction:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /blocks
+            Method: post
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref BlocksTable
+        
+  GetBlocksFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/block-crud/get_blocks/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        GetActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /blocks/{pageId}
+            Method: get
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref BlocksTable
+
+  GetBlocksByTagFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/block-crud/get_blocks_by_tag/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        GetActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /blockstag/{tagId}
+            Method: get
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref BlocksTable
+
+  DeleteBlockFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/block-crud/delete_block/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /blocks/{id}/{pageId}
+            Method: delete
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref BlocksTable
+
+  UpdateBlockFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/block-crud/update_block/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /blocks/{id}/{pageId}
+            Method: put
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref BlocksTable
+
+  # page crud ops
+  CreatePageFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/page-crud/create_page/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        CreateAction:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /page
+            Method: post
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref PageTable
+        
+  GetPageFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/page-crud/get_page/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        GetActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /page/{id}/{userId}
+            Method: get
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref PageTable
+
+  DeletePageFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/page-crud/delete_page/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /page/{id}/{userId}
+            Method: delete
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref PageTable
+
+  UpdatePageFunction:
+    Type: AWS::Serverless::Function # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: src/page-crud/update_page/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /page/{id}/{userId}
+            Method: put
+            ApiId: !Ref HttpApi
+      Policies: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - DynamoDBCrudPolicy: # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-template-list.html#dynamo-db-crud-policy
+            TableName: !Ref PageTable
+
+  # Big File Functions
+
+  BigFileReadFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/bigfile-crud/get_image/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /bigblock/{userId}/{blockId}
+            Method: get
+            ApiId: !Ref HttpApi
+      Policies:
+        - S3ReadPolicy:
+            BucketName: !Ref DrawlBigBlockS3
+
+  BigFilePutFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/bigfile-crud/add_image/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /bigblock/{userId}/{blockId}
+            Method: put
+            ApiId: !Ref HttpApi
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref DrawlBigBlockS3
+
+  BigFileDeleteFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/bigfile-crud/delete_image/
+      Handler: app.lambda_handler
+      Layers:
+        - !Ref MyLayers
+      Events:
+        ListActions:
+          Type: HttpApi # https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-property-function-httpapi.html
+          Properties:
+            Path: /bigblock/{userId}/{blockId}
+            Method: delete
+            ApiId: !Ref HttpApi
+      Policies:
+        - S3CrudPolicy:
+            BucketName: !Ref DrawlBigBlockS3
+
+
+  MyLayers:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      ContentUri: layers/
+      CompatibleRuntimes:
+        - python3.9
+
+  PageTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "id"
+          AttributeType: "S"
+        -
+          AttributeName: "userId"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "id"
+          KeyType: "HASH"
+        -
+          AttributeName: "userId"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: "PageTable"
+  
+  BlocksTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        -
+          AttributeName: "pageId"
+          AttributeType: "S"
+        -
+          AttributeName: "id"
+          AttributeType: "S"
+      KeySchema:
+        -
+          AttributeName: "pageId"
+          KeyType: "HASH"
+        -
+          AttributeName: "id"
+          KeyType: "RANGE"
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+      TableName: "BlocksTable"
+
+  HttpApi:
+    Type: AWS::Serverless::HttpApi
+    Properties:
+      CorsConfiguration:
+        AllowOrigins:
+          - "*"
+        AllowHeaders:
+          - "*"
+        AllowMethods:
+          - "*"
+          - GET
+          - POST
+          - PUT
+          - DELETE
+          - OPTIONS
+
+  DrawlBigBlockS3:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: drawlbigblocks
+
+Outputs:
+  ToDoListApi:
+    Description: "API Gateway endpoint URL for Prod stage for To-Do List functions"
+    Value: !Sub "https://${HttpApi}.execute-api.${AWS::Region}.amazonaws.com/actions"

@@ -1,0 +1,118 @@
+/* Reset some default styles for a cleaner layout */
+body {
+  margin: 0;
+  padding: 0;
+}
+
+/* Centered content using flexbox */
+.centered-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin-top: 10vh; /* Set minimum height to fill viewport */
+}
+
+@media all and (min-width:481px) {
+
+  .demoBlock {
+
+    width: 800px;
+
+  }
+
+  .hero-grid-item {
+    padding-top: 10rem
+  }
+
+}
+
+
+@media all and (min-width:321px) and (max-width: 480px) {
+  .stickyNotesHome {
+    margin-left: 15% !important
+  }
+
+  .demoBlock {
+
+    width: "auto";
+
+  }
+
+  .hero-grid-item {
+    padding-top: 2rem
+  }
+
+}
+
+
+ /* Centered content using flexbox */
+ .centered-content-2 {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.centered-content-no-height {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 10vh; /* Set minimum height to fill viewport */
+
+}
+
+/* Style for the top app bar */
+.app-bar {
+  background-color: white;
+}
+
+/* Style for the top app bar */
+.app-toolbar {
+  justify-content: flex-end;
+  width: 100%; /* Use the entire screen width */
+}
+
+/* Style for the hero section */
+.hero {
+  background-color: transparent; /* Example background color */
+  color: black; /* Example text color */
+  padding: 1rem 0; /* Adjust top and bottom padding to move text closer to the app toolbar */
+  text-align: center;
+  width: 100%; /* Use the entire screen width */
+  margin-top: 20px;
+}
+
+.hero-button {
+  padding: 0;
+  right: 10px;
+  text-transform: none;
+}
+
+/* Style for the main content */
+.main-content {
+  width: 100%; /* Use the entire screen width */
+  margin-top: 5%;
+}
+
+.centered-content-grid-item{
+  text-align: center;
+}
+
+.demo-images{
+  min-height: 100px;
+  min-width: 300px
+}
+
+/* Style for the footer */
+.footer {
+  background-color: #f8f9fa; /* Example background color */
+  padding: 1rem 0;
+  text-align: center;
+  width: 100%; /* Use the entire screen width */
+}
+
+.hero-image {
+  border-radius: 10px;
+}
